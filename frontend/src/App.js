@@ -525,6 +525,7 @@ const App = () => {
     } catch (error) {
       console.error('Error starting removal process:', error);
       alert('Error starting removal process. Please try again.');
+      alert('Error starting removal process. Please try again.');
     } finally {
       setIsLoading(false);
     }
