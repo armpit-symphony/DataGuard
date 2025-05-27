@@ -1,0 +1,252 @@
+
+import requests
+import sys
+import time
+import uuid
+from datetime import datetime
+
+class DataGuardProTester:
+    def __init__(self, base_url):
+        self.base_url = f"{base_url}/api"
+        self.tests_run = 0
+        self.tests_passed = 0
+        self.user_id = None
+        
+    def run_test(self, name, method, endpoint, expected_status, data=None):
+        """Run a single API test"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+        
+        self.tests_run += 1
+        print(f"\n🔍 Testing {name}...")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=headers)
+            elif method == 'POST':
+                response = requests.post(url, json=data, headers=headers)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers)
+            
+            success = response.status_code == expected_status
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                try:
+                    return success, response.json()
+                except:
+                    return success, {}
+            else:
+                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
+                try:
+                    print(f"Response: {response.text}")
+                except:
+                    pass
+                return False, {}
+                
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False, {}
+    
+    def test_api_root(self):
+        """Test API root endpoint"""
+        success, response = self.run_test(
+            "API Root",
+            "GET",
+            "",
+            200
+        )
+        if success:
+            print(f"API Version: {response.get('version', 'unknown')}")
+        return success
+    
+    def test_initialize_data_brokers(self):
+        """Test data broker initialization"""
+        success, response = self.run_test(
+            "Initialize Data Brokers",
+            "POST",
+            "data-brokers/initialize",
+            200
+        )
+        if success:
+            print(f"Message: {response.get('message', 'No message')}")
+        return success
+    
+    def test_get_data_brokers(self):
+        """Test getting all data brokers"""
+        success, response = self.run_test(
+            "Get Data Brokers",
+            "GET",
+            "data-brokers",
+            200
+        )
+        if success:
+            print(f"Retrieved {len(response)} data brokers")
+            if len(response) > 0:
+                print(f"First broker: {response[0]['name']}")
+        return success, response
+    
+    def test_create_user(self):
+        """Test user creation"""
+        test_user_id = str(uuid.uuid4())
+        user_data = {
+            "full_name": "Test User",
+            "first_name": "Test",
+            "last_name": "User",
+            "email": f"test{test_user_id[:8]}@example.com",
+            "phone": "555-123-4567",
+            "current_address": "123 Test St, Test City, TS 12345",
+            "previous_addresses": ["456 Old St, Old City, OC 67890"],
+            "date_of_birth": "1990-01-01",
+            "family_members": ["Family Member 1", "Family Member 2"]
+        }
+        
+        success, response = self.run_test(
+            "Create User Profile",
+            "POST",
+            "users",
+            200,
+            data=user_data
+        )
+        
+        if success and 'id' in response:
+            self.user_id = response['id']
+            print(f"Created user with ID: {self.user_id}")
+        return success
+    
+    def test_get_user(self):
+        """Test getting user by ID"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Get User Profile",
+            "GET",
+            f"users/{self.user_id}",
+            200
+        )
+        
+        if success:
+            print(f"Retrieved user: {response['full_name']}")
+        return success
+    
+    def test_bulk_create_removal_requests(self):
+        """Test bulk creation of removal requests"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Bulk Create Removal Requests",
+            "POST",
+            f"removal-requests/bulk-create/{self.user_id}",
+            200
+        )
+        
+        if success:
+            print(f"Message: {response.get('message', 'No message')}")
+            print(f"Total brokers: {response.get('total_brokers', 0)}")
+            print(f"New requests: {response.get('new_requests', 0)}")
+        return success
+    
+    def test_get_user_removal_requests(self):
+        """Test getting removal requests for a user"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Get User Removal Requests",
+            "GET",
+            f"removal-requests/user/{self.user_id}",
+            200
+        )
+        
+        if success:
+            print(f"Retrieved {len(response)} removal requests")
+            if len(response) > 0:
+                print(f"First request status: {response[0]['status']}")
+        return success, response
+    
+    def test_get_removal_summary(self):
+        """Test getting removal summary for a user"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Get Removal Summary",
+            "GET",
+            f"removal-requests/summary/{self.user_id}",
+            200
+        )
+        
+        if success:
+            print(f"Total brokers: {response.get('total_brokers', 0)}")
+            print(f"Pending: {response.get('pending', 0)}")
+            print(f"In progress: {response.get('in_progress', 0)}")
+            print(f"Completed: {response.get('completed', 0)}")
+            print(f"Success rate: {response.get('success_rate', 0)}%")
+        return success
+    
+    def test_update_removal_status(self):
+        """Test updating removal request status"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        # First get a removal request ID
+        success, requests = self.test_get_user_removal_requests()
+        if not success or not requests:
+            print("❌ No removal requests available for testing")
+            return False
+            
+        request_id = requests[0]['id']
+        
+        success, response = self.run_test(
+            "Update Removal Status",
+            "PUT",
+            f"removal-requests/{request_id}/status?status=in_progress&notes=Testing status update",
+            200
+        )
+        
+        if success:
+            print(f"Message: {response.get('message', 'No message')}")
+        return success
+    
+    def run_all_tests(self):
+        """Run all tests in sequence"""
+        print("🚀 Starting DataGuard Pro API Tests\n")
+        
+        # Basic API tests
+        self.test_api_root()
+        self.test_initialize_data_brokers()
+        self.test_get_data_brokers()
+        
+        # User flow tests
+        self.test_create_user()
+        self.test_get_user()
+        
+        # Removal request tests
+        self.test_bulk_create_removal_requests()
+        self.test_get_user_removal_requests()
+        self.test_get_removal_summary()
+        self.test_update_removal_status()
+        
+        # Print results
+        print(f"\n📊 Tests passed: {self.tests_passed}/{self.tests_run}")
+        return self.tests_passed == self.tests_run
+
+def main():
+    # Get backend URL from frontend .env
+    backend_url = "https://5192b957-5fc7-4150-b231-d943b0f44f4a.preview.emergentagent.com"
+    
+    # Run tests
+    tester = DataGuardProTester(backend_url)
+    success = tester.run_all_tests()
+    
+    return 0 if success else 1
+
+if __name__ == "__main__":
+    sys.exit(main())
