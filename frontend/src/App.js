@@ -259,6 +259,9 @@ const UserProfileForm = ({ onSubmit, isLoading }) => {
 };
 
 const Dashboard = ({ user, onStartRemoval, summary, requests, brokers }) => {
+  const [isProcessingAutomation, setIsProcessingAutomation] = useState(false);
+  const [automationStatus, setAutomationStatus] = useState(null);
+  
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-100';
@@ -274,6 +277,46 @@ const Dashboard = ({ user, onStartRemoval, summary, requests, brokers }) => {
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
+
+  const startAutomatedRemoval = async () => {
+    if (!user) return;
+    
+    setIsProcessingAutomation(true);
+    try {
+      const response = await axios.post(`${API}/removal-requests/process-automated/${user.id}`);
+      
+      // Get updated automation status
+      const statusResponse = await axios.get(`${API}/removal-requests/automation-status/${user.id}`);
+      setAutomationStatus(statusResponse.data);
+      
+      // Reload user data
+      await loadUserData(user.id);
+      
+      alert(`Automation completed! Processed ${response.data.processed} automated removals.`);
+    } catch (error) {
+      console.error('Error processing automated removals:', error);
+      alert('Error processing automated removals. Please try again.');
+    } finally {
+      setIsProcessingAutomation(false);
+    }
+  };
+
+  const loadAutomationStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const response = await axios.get(`${API}/removal-requests/automation-status/${user.id}`);
+      setAutomationStatus(response.data);
+    } catch (error) {
+      console.error('Error loading automation status:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user && requests.length > 0) {
+      loadAutomationStatus();
+    }
+  }, [user, requests]);
 
   return (
     <div className="space-y-6">
@@ -312,33 +355,99 @@ const Dashboard = ({ user, onStartRemoval, summary, requests, brokers }) => {
               onClick={onStartRemoval}
               className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-blue-700 transition duration-200"
             >
-              Start Automated Removal Process
+              Start Removal Process
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800">Removal Progress</h3>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {requests.map((request) => {
-                const broker = brokers.find(b => b.id === request.data_broker_id);
-                return (
-                  <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-800">{broker?.name || 'Unknown Broker'}</div>
-                      <div className="text-sm text-gray-500">{broker?.website}</div>
-                      <div className="text-xs text-gray-400">Method: {request.method_used}</div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-                        {formatStatus(request.status)}
-                      </span>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {new Date(request.submitted_at).toLocaleDateString()}
+          <div className="space-y-6">
+            {/* Automation Controls */}
+            {automationStatus && (
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border-l-4 border-purple-500">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">🤖 Automated Removal Status</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  <div className="bg-white rounded-lg p-4">
+                    <h4 className="font-medium text-green-700 mb-2">
+                      ✅ Automated Brokers ({automationStatus.automated_brokers.count})
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      These brokers support full automation
+                    </p>
+                    {automationStatus.automated_brokers.count > 0 && (
+                      <button
+                        onClick={startAutomatedRemoval}
+                        disabled={isProcessingAutomation}
+                        className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition duration-200 disabled:opacity-50"
+                      >
+                        {isProcessingAutomation ? (
+                          <span className="flex items-center justify-center">
+                            <div className="spinner mr-2"></div>
+                            Processing...
+                          </span>
+                        ) : (
+                          'Run Automated Removal'
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4">
+                    <h4 className="font-medium text-orange-700 mb-2">
+                      📝 Manual Brokers ({automationStatus.manual_brokers.count})
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      These require manual opt-out processes
+                    </p>
+                    {automationStatus.manual_brokers.count > 0 && (
+                      <button
+                        onClick={() => setCurrentView('manual-instructions')}
+                        className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white py-2 px-4 rounded-lg font-medium hover:from-orange-700 hover:to-orange-800 transition duration-200"
+                      >
+                        View Manual Instructions
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Progress Overview */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-800">Removal Progress</h3>
+              <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+                {requests.map((request) => {
+                  const broker = brokers.find(b => b.id === request.data_broker_id);
+                  const isAutomated = broker?.automation_available;
+                  
+                  return (
+                    <div key={request.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <div className="font-medium text-gray-800">{broker?.name || 'Unknown Broker'}</div>
+                          {isAutomated && (
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                              🤖 Automated
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-500">{broker?.website}</div>
+                        <div className="text-xs text-gray-400">Method: {request.method_used}</div>
+                        {request.notes && (
+                          <div className="text-xs text-blue-600 mt-1">{request.notes}</div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+                          {formatStatus(request.status)}
+                        </span>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {new Date(request.submitted_at).toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
