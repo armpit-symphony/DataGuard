@@ -408,6 +408,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@app.on_event("startup")
+async def startup_db_client():
+    """Initialize automation engine on startup"""
+    try:
+        await automation_engine.start()
+        logger.info("Automation engine started successfully")
+    except Exception as e:
+        logger.error(f"Error starting automation engine: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    """Cleanup resources on shutdown"""
+    try:
+        await automation_engine.stop()
+        logger.info("Automation engine stopped successfully")
+    except Exception as e:
+        logger.error(f"Error stopping automation engine: {str(e)}")
+    
     client.close()
