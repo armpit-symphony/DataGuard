@@ -390,6 +390,120 @@ async def bulk_create_removal_requests(user_id: str):
         "new_requests": len(created_requests)
     }
 
+@api_router.post("/removal-requests/process-automated/{user_id}")
+async def process_automated_removals(user_id: str):
+    """Process automated removal requests for a user"""
+    # Verify user exists
+    user = await db.user_profiles.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get all data brokers with automation available
+    brokers = await db.data_brokers.find({"automation_available": True}).to_list(1000)
+    
+    if not brokers:
+        return {
+            "message": "No automated brokers available",
+            "processed": 0
+        }
+    
+    try:
+        # Process automated removals
+        results = await automation_engine.batch_process_removals(user, brokers)
+        
+        # Update removal requests with results
+        processed_count = 0
+        for result in results:
+            broker_id = result.get('broker_id')
+            if broker_id:
+                # Find the removal request
+                request = await db.removal_requests.find_one({
+                    "user_id": user_id,
+                    "data_broker_id": broker_id
+                })
+                
+                if request:
+                    # Update status based on automation result
+                    if result['success']:
+                        status = result.get('status', 'in_progress')
+                    else:
+                        status = result.get('status', 'failed')
+                    
+                    update_data = {
+                        "status": status,
+                        "notes": result.get('message', ''),
+                        "confirmation_details": {
+                            "automation_result": result,
+                            "processed_at": datetime.utcnow().isoformat()
+                        }
+                    }
+                    
+                    if status == 'completed':
+                        update_data["completed_at"] = datetime.utcnow()
+                    
+                    await db.removal_requests.update_one(
+                        {"id": request["id"]}, 
+                        {"$set": update_data}
+                    )
+                    processed_count += 1
+        
+        return {
+            "message": f"Processed {processed_count} automated removal requests",
+            "total_brokers": len(brokers),
+            "processed": processed_count,
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing automated removals: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Automation processing failed: {str(e)}")
+
+@api_router.get("/removal-requests/automation-status/{user_id}")
+async def get_automation_status(user_id: str):
+    """Get automation status for a user's removal requests"""
+    # Get user's removal requests
+    requests = await db.removal_requests.find({"user_id": user_id}).to_list(1000)
+    
+    # Get broker information
+    broker_ids = [req["data_broker_id"] for req in requests]
+    brokers = await db.data_brokers.find({"id": {"$in": broker_ids}}).to_list(1000)
+    broker_map = {broker["id"]: broker for broker in brokers}
+    
+    # Categorize by automation capability
+    automated_brokers = []
+    manual_brokers = []
+    
+    for request in requests:
+        broker = broker_map.get(request["data_broker_id"])
+        if broker:
+            broker_info = {
+                "broker_name": broker["name"],
+                "broker_id": broker["id"],
+                "status": request["status"],
+                "automation_available": broker.get("automation_available", False),
+                "removal_method": broker.get("removal_method"),
+                "submitted_at": request["submitted_at"],
+                "notes": request.get("notes")
+            }
+            
+            if broker.get("automation_available"):
+                automated_brokers.append(broker_info)
+            else:
+                manual_brokers.append(broker_info)
+    
+    return {
+        "user_id": user_id,
+        "total_requests": len(requests),
+        "automated_brokers": {
+            "count": len(automated_brokers),
+            "brokers": automated_brokers
+        },
+        "manual_brokers": {
+            "count": len(manual_brokers),
+            "brokers": manual_brokers
+        }
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
