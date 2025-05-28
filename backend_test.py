@@ -84,6 +84,11 @@ class DataGuardProTester:
             print(f"Retrieved {len(response)} data brokers")
             if len(response) > 0:
                 print(f"First broker: {response[0]['name']}")
+                # Check for automation_available field
+                print(f"Automation available: {response[0].get('automation_available', False)}")
+                # Count automated vs manual brokers
+                automated = sum(1 for broker in response if broker.get('automation_available', False))
+                print(f"Automated brokers: {automated}, Manual brokers: {len(response) - automated}")
         return success, response
     
     def test_create_user(self):
@@ -215,6 +220,77 @@ class DataGuardProTester:
             print(f"Message: {response.get('message', 'No message')}")
         return success
     
+    def test_get_automation_status(self):
+        """Test getting automation status for a user"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Get Automation Status",
+            "GET",
+            f"removal-requests/automation-status/{self.user_id}",
+            200
+        )
+        
+        if success:
+            print(f"Total requests: {response.get('total_requests', 0)}")
+            print(f"Automated brokers: {response.get('automated_brokers', {}).get('count', 0)}")
+            print(f"Manual brokers: {response.get('manual_brokers', {}).get('count', 0)}")
+            
+            # Print details of automated brokers
+            automated_brokers = response.get('automated_brokers', {}).get('brokers', [])
+            if automated_brokers:
+                print("\nAutomated brokers:")
+                for broker in automated_brokers[:3]:  # Show first 3 for brevity
+                    print(f"  - {broker.get('broker_name', 'Unknown')}: {broker.get('status', 'unknown')}")
+                if len(automated_brokers) > 3:
+                    print(f"  - ... and {len(automated_brokers) - 3} more")
+            
+            # Print details of manual brokers
+            manual_brokers = response.get('manual_brokers', {}).get('brokers', [])
+            if manual_brokers:
+                print("\nManual brokers:")
+                for broker in manual_brokers[:3]:  # Show first 3 for brevity
+                    print(f"  - {broker.get('broker_name', 'Unknown')}: {broker.get('status', 'unknown')}")
+                if len(manual_brokers) > 3:
+                    print(f"  - ... and {len(manual_brokers) - 3} more")
+        
+        return success, response
+    
+    def test_process_automated_removals(self):
+        """Test processing automated removal requests"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Process Automated Removals",
+            "POST",
+            f"removal-requests/process-automated/{self.user_id}",
+            200
+        )
+        
+        if success:
+            print(f"Message: {response.get('message', 'No message')}")
+            print(f"Total brokers: {response.get('total_brokers', 0)}")
+            print(f"Processed: {response.get('processed', 0)}")
+            
+            # Print details of results
+            results = response.get('results', [])
+            if results:
+                print("\nAutomation results:")
+                for result in results[:3]:  # Show first 3 for brevity
+                    broker_name = result.get('broker_name', 'Unknown')
+                    success = result.get('success', False)
+                    status = result.get('status', 'unknown')
+                    message = result.get('message', 'No message')
+                    print(f"  - {broker_name}: {'✅' if success else '❌'} {status} - {message}")
+                if len(results) > 3:
+                    print(f"  - ... and {len(results) - 3} more")
+        
+        return success
+    
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🚀 Starting DataGuard Pro API Tests\n")
@@ -233,6 +309,10 @@ class DataGuardProTester:
         self.test_get_user_removal_requests()
         self.test_get_removal_summary()
         self.test_update_removal_status()
+        
+        # New automation tests
+        self.test_get_automation_status()
+        self.test_process_automated_removals()
         
         # Print results
         print(f"\n📊 Tests passed: {self.tests_passed}/{self.tests_run}")
