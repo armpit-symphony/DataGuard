@@ -400,7 +400,6 @@ const Dashboard = ({ user, onStartRemoval, summary, requests, brokers, loadUserD
                     </p>
                     {automationStatus.manual_brokers.count > 0 && (
                       <button
-                        onClick={() => setCurrentView('manual-instructions')}
                         className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white py-2 px-4 rounded-lg font-medium hover:from-orange-700 hover:to-orange-800 transition duration-200"
                       >
                         View Manual Instructions
