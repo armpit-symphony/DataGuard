@@ -602,6 +602,7 @@ const App = () => {
       requests={requests}
       brokers={brokers}
       onStartRemoval={startRemovalProcess}
+      loadUserData={loadUserData}
     />
   );
 
