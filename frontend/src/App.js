@@ -731,10 +731,13 @@ const ManualInstructionsView = ({ user, setCurrentView }) => {
               </div>
 
               <button
-                onClick={() => setEmailTemplate(null)}
+                onClick={() => {
+                  setEmailTemplate(null);
+                  setSelectedBroker(null);
+                }}
                 className="mt-3 bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-700"
               >
-                Close
+                Close Email Template
               </button>
             </div>
           )}
