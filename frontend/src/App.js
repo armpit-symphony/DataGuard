@@ -679,10 +679,21 @@ const ManualInstructionsView = ({ user, setCurrentView }) => {
           </div>
 
           {/* Email Template Modal */}
-          {console.log('Debug - emailTemplate:', !!emailTemplate, 'selectedBroker:', selectedBroker, 'current broker:', broker.broker_name)}
           {emailTemplate && selectedBroker === broker.broker_name && (
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h5 className="font-medium text-blue-800 mb-3">📧 Personalized Email Template</h5>
+            <div 
+              id={`email-template-${broker.broker_name.replace(/\s+/g, '-')}`}
+              className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-lg"
+            >
+              <div className="flex items-center mb-4">
+                <span className="text-2xl mr-3">📧</span>
+                <h5 className="text-lg font-bold text-blue-800">Personalized Email Template Generated!</h5>
+              </div>
+              
+              <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  ✅ Your personalized removal email is ready! Copy the content below and send it to {broker.broker_name}.
+                </p>
+              </div>
               
               <div className="space-y-3">
                 <div>
