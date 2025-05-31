@@ -15,6 +15,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 from automation_engine import automation_engine
+from manual_removal_instructions import manual_removal_instructions
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
