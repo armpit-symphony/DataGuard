@@ -277,6 +277,7 @@ This is a formal data removal request under applicable privacy laws. Please trea
             email_template = ManualRemovalInstructions.generate_email_template(user_data, broker)
             
             broker_checklist = {
+                'broker_id': broker.get('id', ''),  # Add broker_id
                 'broker_name': broker.get('name', ''),
                 'website': broker.get('website', ''),
                 'removal_url': broker.get('removal_url', ''),
