@@ -482,14 +482,17 @@ const ManualInstructionsView = ({ user, setCurrentView }) => {
     }
   };
 
-  const generateEmailTemplate = async (brokerId) => {
+  const generateEmailTemplate = async (brokerId, brokerName) => {
     if (!user) return;
     
     try {
       const response = await axios.post(`${API}/manual-instructions/generate-email?user_id=${user.id}&broker_id=${brokerId}`);
       setEmailTemplate(response.data.email_template);
+      setSelectedBroker(brokerName); // Set the selected broker to show template
+      console.log('Email template generated successfully:', response.data);
     } catch (error) {
       console.error('Error generating email template:', error);
+      alert('Failed to generate email template. Please try again.');
     }
   };
 
