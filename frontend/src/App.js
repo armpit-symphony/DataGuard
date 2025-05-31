@@ -674,6 +674,7 @@ const ManualInstructionsView = ({ user, setCurrentView }) => {
           </div>
 
           {/* Email Template Modal */}
+          {console.log('Debug - emailTemplate:', !!emailTemplate, 'selectedBroker:', selectedBroker, 'current broker:', broker.broker_name)}
           {emailTemplate && selectedBroker === broker.broker_name && (
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <h5 className="font-medium text-blue-800 mb-3">📧 Personalized Email Template</h5>
