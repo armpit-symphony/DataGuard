@@ -508,6 +508,80 @@ async def get_automation_status(user_id: str):
         }
     }
 
+@api_router.get("/manual-instructions/{user_id}")
+async def get_manual_instructions(user_id: str):
+    """Get manual removal instructions for a user"""
+    # Verify user exists
+    user = await db.user_profiles.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get manual brokers for this user
+    manual_brokers = await db.data_brokers.find({"automation_available": False}).to_list(1000)
+    
+    if not manual_brokers:
+        return {
+            "message": "No manual brokers found",
+            "manual_brokers": []
+        }
+    
+    # Generate comprehensive removal checklist
+    checklist = manual_removal_instructions.generate_removal_checklist(user, manual_brokers)
+    
+    return {
+        "user_id": user_id,
+        "checklist": checklist
+    }
+
+@api_router.get("/manual-instructions/broker/{broker_id}")
+async def get_broker_instructions(broker_id: str, user_id: Optional[str] = None):
+    """Get detailed instructions for a specific broker"""
+    # Get broker information
+    broker = await db.data_brokers.find_one({"id": broker_id})
+    if not broker:
+        raise HTTPException(status_code=404, detail="Broker not found")
+    
+    # Get detailed instructions
+    instructions = manual_removal_instructions.get_detailed_instructions(broker)
+    
+    result = {
+        "broker_id": broker_id,
+        "broker_name": broker["name"],
+        "instructions": instructions
+    }
+    
+    # If user_id provided, include personalized email template
+    if user_id:
+        user = await db.user_profiles.find_one({"id": user_id})
+        if user:
+            email_template = manual_removal_instructions.generate_email_template(user, broker)
+            result["email_template"] = email_template
+    
+    return result
+
+@api_router.post("/manual-instructions/generate-email")
+async def generate_email_template(user_id: str, broker_id: str):
+    """Generate personalized email template for manual removal"""
+    # Verify user exists
+    user = await db.user_profiles.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify broker exists
+    broker = await db.data_brokers.find_one({"id": broker_id})
+    if not broker:
+        raise HTTPException(status_code=404, detail="Broker not found")
+    
+    # Generate email template
+    email_template = manual_removal_instructions.generate_email_template(user, broker)
+    
+    return {
+        "user_id": user_id,
+        "broker_id": broker_id,
+        "broker_name": broker["name"],
+        "email_template": email_template
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
