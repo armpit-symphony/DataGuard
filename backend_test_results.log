@@ -1,0 +1,71 @@
+🚀 Starting DataGuard Pro API Tests
+
+
+🔍 Testing API Root...
+✅ Passed - Status: 200
+API Version: 1.0.0
+
+🔍 Testing Initialize Data Brokers...
+✅ Passed - Status: 200
+Message: Data brokers already initialized. Count: 8
+
+🔍 Testing Get Data Brokers...
+✅ Passed - Status: 200
+Retrieved 8 data brokers
+First broker: Whitepages
+Automation available: True
+Automated brokers: 6, Manual brokers: 2
+
+🔍 Testing Create User Profile...
+✅ Passed - Status: 200
+Created user with ID: 32e01ef8-ae8c-4ba9-be8f-23a2ab7bcf1b
+
+🔍 Testing Get User Profile...
+✅ Passed - Status: 200
+Retrieved user: Test User
+
+🔍 Testing Bulk Create Removal Requests...
+✅ Passed - Status: 200
+Message: Created 8 removal requests
+Total brokers: 8
+New requests: 8
+
+🔍 Testing Get User Removal Requests...
+✅ Passed - Status: 200
+Retrieved 8 removal requests
+First request status: pending
+
+🔍 Testing Get Removal Summary...
+✅ Passed - Status: 200
+Total brokers: 8
+Pending: 8
+In progress: 0
+Completed: 0
+Success rate: 0.0%
+
+🔍 Testing Get User Removal Requests...
+✅ Passed - Status: 200
+Retrieved 8 removal requests
+First request status: pending
+
+🔍 Testing Update Removal Status...
+✅ Passed - Status: 200
+Message: Status updated successfully
+
+🔍 Testing Get Automation Status...
+✅ Passed - Status: 200
+Total requests: 8
+Automated brokers: 6
+Manual brokers: 2
+
+Automated brokers:
+  - Whitepages: in_progress
+  - Spokeo: pending
+  - BeenVerified: pending
+  - ... and 3 more
+
+Manual brokers:
+  - PeopleFinder: pending
+  - FamilyTreeNow: pending
+
+🔍 Testing Process Automated Removals...
