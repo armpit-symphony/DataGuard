@@ -554,7 +554,7 @@ const ManualInstructionsView = ({ user, setCurrentView }) => {
             <h3 className="text-xl font-semibold text-gray-800">{broker.broker_name}</h3>
             <div className="flex space-x-2">
               <button
-                onClick={() => generateEmailTemplate(broker.broker_id || 'unknown')}
+                onClick={() => generateEmailTemplate(broker.broker_id || 'unknown', broker.broker_name)}
                 className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200 text-sm"
               >
                 Generate Email
