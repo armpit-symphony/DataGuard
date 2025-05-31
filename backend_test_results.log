@@ -18,7 +18,7 @@ Automated brokers: 6, Manual brokers: 2
 
 🔍 Testing Create User Profile...
 ✅ Passed - Status: 200
-Created user with ID: 32e01ef8-ae8c-4ba9-be8f-23a2ab7bcf1b
+Created user with ID: b9e7a560-e18e-4119-87b9-bfd839f2bf91
 
 🔍 Testing Get User Profile...
 ✅ Passed - Status: 200
@@ -69,3 +69,85 @@ Manual brokers:
   - FamilyTreeNow: pending
 
 🔍 Testing Process Automated Removals...
+✅ Passed - Status: 200
+Message: Processed 6 automated removal requests
+Total brokers: 6
+Processed: 6
+
+Automation results:
+  - Whitepages: ❌ failed - Whitepages automation failed: Page.fill: Timeout 30000ms exceeded.
+Call log:
+waiting for locator("input[name=\"firstName\"]")
+
+  - Spokeo: ❌ failed - Spokeo automation failed: Page.fill: Timeout 30000ms exceeded.
+Call log:
+waiting for locator("input[name=\"q\"]")
+
+  - BeenVerified: ❌ failed - BeenVerified automation failed: Page.fill: Timeout 30000ms exceeded.
+Call log:
+waiting for locator("input[name=\"firstName\"]")
+
+  - ... and 3 more
+
+🔍 Testing Get Manual Instructions...
+✅ Passed - Status: 200
+User name: Test User
+Total manual brokers: 2
+Estimated total time: 30-50 minutes
+
+Manual broker instructions:
+  - PeopleFinder
+    Website: peoplefinder.com
+    Removal URL: https://www.peoplefinder.com/optout.php
+    Email template available: Yes
+    Difficulty: Medium
+    Estimated time: 15-20 minutes
+    Number of steps: 6
+  - FamilyTreeNow
+    Website: familytreenow.com
+    Removal URL: https://www.familytreenow.com/optout
+    Email template available: Yes
+    Difficulty: Hard
+    Estimated time: 20-30 minutes
+    Number of steps: 6
+
+🔍 Testing Get Automation Status...
+✅ Passed - Status: 200
+Total requests: 8
+Automated brokers: 6
+Manual brokers: 2
+
+Automated brokers:
+  - Whitepages: failed
+  - Spokeo: failed
+  - BeenVerified: failed
+  - ... and 3 more
+
+Manual brokers:
+  - PeopleFinder: pending
+  - FamilyTreeNow: pending
+
+🔍 Testing Generate Email Template...
+✅ Passed - Status: 200
+Broker name: PeopleFinder
+Email subject: Request for Data Removal - Test User
+Email recipient: privacy@peoplefinder.com
+Email body length: 1531
+
+🔍 Testing Get Data Brokers...
+✅ Passed - Status: 200
+Retrieved 8 data brokers
+First broker: Whitepages
+Automation available: True
+Automated brokers: 6, Manual brokers: 2
+
+🔍 Testing Get Broker Instructions...
+✅ Passed - Status: 200
+Broker name: Whitepages
+Difficulty: Medium
+Estimated time: 10-15 minutes
+Success rate: 80%
+Number of steps: 5
+Number of tips: 4
+
+📊 Tests passed: 17/17
