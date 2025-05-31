@@ -899,7 +899,7 @@ const App = () => {
         </div>
       </nav>
 
-            <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-6 py-8">
         {currentView === 'home' && renderHome()}
         {currentView === 'signup' && renderSignup()}
         {currentView === 'dashboard' && renderDashboard()}
