@@ -377,15 +377,15 @@ const Dashboard = ({ user, onStartRemoval, summary, requests, brokers, loadUserD
                       <button
                         onClick={startAutomatedRemoval}
                         disabled={isProcessingAutomation}
-                        className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition duration-200 disabled:opacity-50"
+                        className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isProcessingAutomation ? (
                           <span className="flex items-center justify-center">
                             <div className="spinner mr-2"></div>
-                            Processing...
+                            Processing Automation...
                           </span>
                         ) : (
-                          'Run Automated Removal'
+                          '🤖 Run Automated Removal'
                         )}
                       </button>
                     )}
