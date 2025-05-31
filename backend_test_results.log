@@ -18,7 +18,7 @@ Automated brokers: 6, Manual brokers: 2
 
 🔍 Testing Create User Profile...
 ✅ Passed - Status: 200
-Created user with ID: b9e7a560-e18e-4119-87b9-bfd839f2bf91
+Created user with ID: 45a543d5-107b-4189-bdbc-3f0dbe89aa5f
 
 🔍 Testing Get User Profile...
 ✅ Passed - Status: 200
