@@ -291,6 +291,128 @@ class DataGuardProTester:
         
         return success
     
+    def test_get_manual_instructions(self):
+        """Test getting manual removal instructions for a user"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Get Manual Instructions",
+            "GET",
+            f"manual-instructions/{self.user_id}",
+            200
+        )
+        
+        if success:
+            checklist = response.get('checklist', {})
+            print(f"User name: {checklist.get('user_name', 'Unknown')}")
+            print(f"Total manual brokers: {checklist.get('total_manual_brokers', 0)}")
+            print(f"Estimated total time: {checklist.get('estimated_total_time', 'Unknown')}")
+            
+            # Print details of manual brokers
+            brokers = checklist.get('brokers', [])
+            if brokers:
+                print("\nManual broker instructions:")
+                for broker in brokers:
+                    print(f"  - {broker.get('broker_name', 'Unknown')}")
+                    print(f"    Website: {broker.get('website', 'Unknown')}")
+                    print(f"    Removal URL: {broker.get('removal_url', 'Unknown')}")
+                    
+                    # Check if email template is available
+                    if 'email_template' in broker:
+                        print(f"    Email template available: Yes")
+                    
+                    # Check if instructions are available
+                    if 'instructions' in broker:
+                        instructions = broker.get('instructions', {})
+                        print(f"    Difficulty: {instructions.get('difficulty', 'Unknown')}")
+                        print(f"    Estimated time: {instructions.get('estimated_time', 'Unknown')}")
+                        
+                        # Check if steps are available
+                        steps = instructions.get('steps', [])
+                        print(f"    Number of steps: {len(steps)}")
+        
+        return success
+    
+    def test_generate_email_template(self):
+        """Test generating email template for manual removal"""
+        if not self.user_id:
+            print("❌ No user ID available for testing")
+            return False
+            
+        # First get a manual broker ID
+        success, response = self.test_get_automation_status()
+        if not success:
+            print("❌ Failed to get automation status")
+            return False
+            
+        manual_brokers = response.get('manual_brokers', {}).get('brokers', [])
+        if not manual_brokers:
+            print("❌ No manual brokers available for testing")
+            return False
+            
+        broker_id = manual_brokers[0].get('broker_id')
+        if not broker_id:
+            print("❌ No broker ID available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Generate Email Template",
+            "POST",
+            f"manual-instructions/generate-email?user_id={self.user_id}&broker_id={broker_id}",
+            200
+        )
+        
+        if success:
+            print(f"Broker name: {response.get('broker_name', 'Unknown')}")
+            
+            # Check if email template is available
+            email_template = response.get('email_template', {})
+            if email_template:
+                print(f"Email subject: {email_template.get('subject', 'Unknown')}")
+                print(f"Email recipient: {email_template.get('recipient', 'Unknown')}")
+                print(f"Email body length: {len(email_template.get('body', ''))}")
+        
+        return success
+    
+    def test_get_broker_instructions(self):
+        """Test getting detailed instructions for a specific broker"""
+        # First get a broker ID
+        success, response = self.test_get_data_brokers()
+        if not success or not response:
+            print("❌ No brokers available for testing")
+            return False
+            
+        broker_id = response[0]['id']
+        
+        success, response = self.run_test(
+            "Get Broker Instructions",
+            "GET",
+            f"manual-instructions/broker/{broker_id}",
+            200
+        )
+        
+        if success:
+            print(f"Broker name: {response.get('broker_name', 'Unknown')}")
+            
+            # Check if instructions are available
+            instructions = response.get('instructions', {})
+            if instructions:
+                print(f"Difficulty: {instructions.get('difficulty', 'Unknown')}")
+                print(f"Estimated time: {instructions.get('estimated_time', 'Unknown')}")
+                print(f"Success rate: {instructions.get('success_rate', 'Unknown')}")
+                
+                # Check if steps are available
+                steps = instructions.get('steps', [])
+                print(f"Number of steps: {len(steps)}")
+                
+                # Check if tips are available
+                tips = instructions.get('tips', [])
+                print(f"Number of tips: {len(tips)}")
+        
+        return success
+    
     def run_all_tests(self):
         """Run all tests in sequence"""
         print("🚀 Starting DataGuard Pro API Tests\n")
@@ -310,9 +432,14 @@ class DataGuardProTester:
         self.test_get_removal_summary()
         self.test_update_removal_status()
         
-        # New automation tests
+        # Automation tests
         self.test_get_automation_status()
         self.test_process_automated_removals()
+        
+        # Manual instructions tests
+        self.test_get_manual_instructions()
+        self.test_generate_email_template()
+        self.test_get_broker_instructions()
         
         # Print results
         print(f"\n📊 Tests passed: {self.tests_passed}/{self.tests_run}")
