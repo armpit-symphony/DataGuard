@@ -496,10 +496,36 @@ const ManualInstructionsView = ({ user, setCurrentView }) => {
     }
   };
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      alert('Copied to clipboard!');
-    });
+  const copyToClipboard = async (text, label = 'Text') => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        // Use the modern clipboard API
+        await navigator.clipboard.writeText(text);
+        alert(`${label} copied to clipboard!`);
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'absolute';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          alert(`${label} copied to clipboard!`);
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          alert('Failed to copy to clipboard. Please manually select and copy the text.');
+        }
+        
+        document.body.removeChild(textArea);
+      }
+    } catch (err) {
+      console.error('Clipboard operation failed:', err);
+      alert('Failed to copy to clipboard. Please manually select and copy the text.');
+    }
   };
 
   if (isLoading) {
