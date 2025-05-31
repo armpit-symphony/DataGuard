@@ -477,6 +477,7 @@ const ManualInstructionsView = ({ user, setCurrentView }) => {
       setManualInstructions(response.data.checklist);
     } catch (error) {
       console.error('Error loading manual instructions:', error);
+      alert('Failed to load manual instructions. Please try again.');
     } finally {
       setIsLoading(false);
     }
