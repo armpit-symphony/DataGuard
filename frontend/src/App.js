@@ -903,6 +903,9 @@ const App = () => {
         {currentView === 'home' && renderHome()}
         {currentView === 'signup' && renderSignup()}
         {currentView === 'dashboard' && renderDashboard()}
+        {currentView === 'manual-instructions' && (
+          <ManualInstructionsView user={user} setCurrentView={setCurrentView} />
+        )}
       </main>
 
       <footer className="bg-gray-800 text-white py-8 mt-16">
