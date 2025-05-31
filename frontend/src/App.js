@@ -685,7 +685,7 @@ const ManualInstructionsView = ({ user, setCurrentView }) => {
                       className="flex-1 p-2 border rounded text-sm bg-white"
                     />
                     <button
-                      onClick={() => copyToClipboard(emailTemplate.subject)}
+                      onClick={() => copyToClipboard(emailTemplate.subject, 'Email Subject')}
                       className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
                     >
                       Copy
