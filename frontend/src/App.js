@@ -603,6 +603,7 @@ const App = () => {
       brokers={brokers}
       onStartRemoval={startRemovalProcess}
       loadUserData={loadUserData}
+      setCurrentView={setCurrentView}
     />
   );
 
