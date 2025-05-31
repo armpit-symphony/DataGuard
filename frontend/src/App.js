@@ -258,7 +258,7 @@ const UserProfileForm = ({ onSubmit, isLoading }) => {
   );
 };
 
-const Dashboard = ({ user, onStartRemoval, summary, requests, brokers, loadUserData }) => {
+const Dashboard = ({ user, onStartRemoval, summary, requests, brokers, loadUserData, setCurrentView }) => {
   const [isProcessingAutomation, setIsProcessingAutomation] = useState(false);
   const [automationStatus, setAutomationStatus] = useState(null);
   
