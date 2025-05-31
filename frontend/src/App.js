@@ -456,6 +456,265 @@ const Dashboard = ({ user, onStartRemoval, summary, requests, brokers, loadUserD
   );
 };
 
+const ManualInstructionsView = ({ user, setCurrentView }) => {
+  const [manualInstructions, setManualInstructions] = useState(null);
+  const [selectedBroker, setSelectedBroker] = useState(null);
+  const [emailTemplate, setEmailTemplate] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadManualInstructions();
+    }
+  }, [user]);
+
+  const loadManualInstructions = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API}/manual-instructions/${user.id}`);
+      setManualInstructions(response.data.checklist);
+    } catch (error) {
+      console.error('Error loading manual instructions:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateEmailTemplate = async (brokerId) => {
+    if (!user) return;
+    
+    try {
+      const response = await axios.post(`${API}/manual-instructions/generate-email?user_id=${user.id}&broker_id=${brokerId}`);
+      setEmailTemplate(response.data.email_template);
+    } catch (error) {
+      console.error('Error generating email template:', error);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied to clipboard!');
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="spinner"></div>
+        <span className="ml-2">Loading manual instructions...</span>
+      </div>
+    );
+  }
+
+  if (!manualInstructions) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">No manual instructions available.</p>
+        <button
+          onClick={() => setCurrentView('dashboard')}
+          className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold text-gray-800">Manual Removal Instructions</h2>
+          <button
+            onClick={() => setCurrentView('dashboard')}
+            className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+        
+        <div className="bg-orange-50 border-l-4 border-orange-400 p-4 rounded">
+          <p className="text-orange-800">
+            📝 These {manualInstructions.total_manual_brokers} data brokers require manual removal. 
+            Estimated total time: <strong>{manualInstructions.estimated_total_time}</strong>
+          </p>
+        </div>
+      </div>
+
+      {/* Manual Brokers */}
+      {manualInstructions.brokers.map((broker, index) => (
+        <div key={index} className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-gray-800">{broker.broker_name}</h3>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => generateEmailTemplate(broker.broker_id || 'unknown')}
+                className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200 text-sm"
+              >
+                Generate Email
+              </button>
+              <a
+                href={broker.removal_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200 text-sm"
+              >
+                Visit Opt-Out Page
+              </a>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Instructions */}
+            <div>
+              <h4 className="font-medium text-gray-800 mb-3">Step-by-Step Instructions</h4>
+              <div className="space-y-3">
+                {broker.instructions.steps.map((step, stepIndex) => (
+                  <div key={stepIndex} className="border rounded-lg p-3">
+                    <div className="flex items-start space-x-3">
+                      <span className="bg-blue-100 text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">
+                        {step.step}
+                      </span>
+                      <div className="flex-1">
+                        <h5 className="font-medium text-gray-800">{step.title}</h5>
+                        <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                        {step.details && (
+                          <p className="text-xs text-gray-500 mt-1">{step.details}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tips */}
+              {broker.instructions.tips && (
+                <div className="mt-4">
+                  <h5 className="font-medium text-gray-800 mb-2">💡 Tips</h5>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    {broker.instructions.tips.map((tip, tipIndex) => (
+                      <li key={tipIndex} className="flex items-start space-x-2">
+                        <span className="text-green-500">•</span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Checklist */}
+            <div>
+              <h4 className="font-medium text-gray-800 mb-3">Progress Checklist</h4>
+              <div className="space-y-2">
+                {broker.checklist_items.map((item, itemIndex) => (
+                  <label key={itemIndex} className="flex items-center space-x-3 p-2 border rounded cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      defaultChecked={item.completed}
+                      className="rounded text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{item.task}</span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Contact Info */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <h5 className="font-medium text-gray-800 mb-2">Contact Information</h5>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><strong>Website:</strong> {broker.website}</p>
+                  <p><strong>Removal URL:</strong> 
+                    <a href={broker.removal_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
+                      {broker.removal_url}
+                    </a>
+                  </p>
+                  {broker.instructions.contact_info?.email && (
+                    <p><strong>Email:</strong> {broker.instructions.contact_info.email}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Email Template Modal */}
+          {emailTemplate && selectedBroker === broker.broker_name && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h5 className="font-medium text-blue-800 mb-3">📧 Personalized Email Template</h5>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Subject:</label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={emailTemplate.subject}
+                      readOnly
+                      className="flex-1 p-2 border rounded text-sm bg-white"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(emailTemplate.subject)}
+                      className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Body:</label>
+                  <div className="space-y-2">
+                    <textarea
+                      value={emailTemplate.body}
+                      readOnly
+                      rows={12}
+                      className="w-full p-3 border rounded text-sm bg-white"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(emailTemplate.body)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+                    >
+                      Copy Email Body
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Recipient Email:</label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={emailTemplate.recipient}
+                      readOnly
+                      className="flex-1 p-2 border rounded text-sm bg-white"
+                    />
+                    <button
+                      onClick={() => copyToClipboard(emailTemplate.recipient)}
+                      className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setEmailTemplate(null)}
+                className="mt-3 bg-gray-600 text-white px-4 py-2 rounded text-sm hover:bg-gray-700"
+              >
+                Close
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const App = () => {
   const [currentView, setCurrentView] = useState('home');
   const [user, setUser] = useState(null);
