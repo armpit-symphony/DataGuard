@@ -857,7 +857,7 @@ const App = () => {
           onClick={() => setCurrentView('signup')}
           className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-lg text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition duration-200"
         >
-          Start Free Data Removal
+          Start Data Removal
         </button>
       </section>
 
