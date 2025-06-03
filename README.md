@@ -32,7 +32,7 @@ DataGuard Pro is a comprehensive application that helps protect your digital pri
 2. You'll see the homepage with features and supported data brokers
 
 ### **Step 2: Create Your Profile**
-1. Click **"Start Free Data Removal"** on the homepage
+1. Click **"Start Data Removal"** on the homepage
 2. Fill out the comprehensive registration form with:
    - **Basic Info**: Name, email, phone number
    - **Current Address**: Where you live now
