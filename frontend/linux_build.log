@@ -1,0 +1,9 @@
+yarn run v1.22.22
+$ /app/frontend/node_modules/.bin/electron-builder --linux --publish=never
+  • electron-builder  version=26.0.12 os=6.6.72+
+  • loaded configuration  file=package.json ("build" field)
+  • loaded parent configuration  preset=react-cra
+  • executing @electron/rebuild  electronVersion=36.4.0 arch=x64 buildFromSource=false appDir=./
+  • installing native dependencies  arch=x64
+  • completed installing native dependencies
+  • packaging       platform=linux arch=x64 electron=36.4.0 appOutDir=dist/linux-unpacked
