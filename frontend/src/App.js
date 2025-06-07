@@ -847,11 +847,54 @@ const App = () => {
   const [summary, setSummary] = useState(null);
   const [requests, setRequests] = useState([]);
   const [brokers, setBrokers] = useState([]);
+  const [licenseInfo, setLicenseInfo] = useState(null);
+  const [appStatus, setAppStatus] = useState(null);
 
   useEffect(() => {
+    checkAppStatus();
     initializeDataBrokers();
     loadDataBrokers();
+    
+    // Check license status if running in Electron
+    if (isElectron()) {
+      checkLicenseStatus();
+    }
   }, []);
+
+  const checkAppStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/status`);
+      setAppStatus(response.data);
+    } catch (error) {
+      console.error('Error checking app status:', error);
+      setAppStatus({ status: 'error', message: 'Backend not available' });
+    }
+  };
+
+  const checkLicenseStatus = async () => {
+    try {
+      if (window.require) {
+        const { ipcRenderer } = window.require('electron');
+        const licenseStatus = await ipcRenderer.invoke('get-license-status');
+        setLicenseInfo(licenseStatus);
+      }
+    } catch (error) {
+      console.error('Error checking license:', error);
+    }
+  };
+
+  const handlePurchaseLicense = async () => {
+    try {
+      if (window.require) {
+        const { shell } = window.require('electron');
+        shell.openExternal('https://dataguardpro.com/purchase');
+      } else {
+        window.open('https://dataguardpro.com/purchase', '_blank');
+      }
+    } catch (error) {
+      console.error('Error opening purchase page:', error);
+    }
+  };
 
   const initializeDataBrokers = async () => {
     try {
