@@ -1,0 +1,22 @@
+/app/backend/desktop_server.py:318: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+/app/backend/desktop_server.py:328: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("shutdown")
+INFO:     Started server process [1368]
+INFO:     Waiting for application startup.
+2025-06-07 17:26:02,904 - __main__ - INFO - Desktop database initialized successfully
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('127.0.0.1', 8001): address already in use
+INFO:     Waiting for application shutdown.
+2025-06-07 17:26:02,905 - __main__ - INFO - Desktop database connection closed
+INFO:     Application shutdown complete.
