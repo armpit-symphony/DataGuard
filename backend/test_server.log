@@ -19,4 +19,8 @@ INFO:     Application startup complete.
 ERROR:    [Errno 98] error while attempting to bind on address ('127.0.0.1', 8001): address already in use
 INFO:     Waiting for application shutdown.
 2025-06-07 18:08:44,920 - __main__ - INFO - DesINFO:     127.0.0.1:60776 - "GET /api/status HTTP/1.1" 200 OK
- complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-06-07 18:10:32,020 - __main__ - INFO - Desktop database connection closed
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3628]
