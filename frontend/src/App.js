@@ -2,8 +2,80 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Desktop app configuration
+const isElectron = () => {
+  return window && window.process && window.process.type;
+};
+
+// Backend URL - always localhost for desktop app
+const BACKEND_URL = 'http://127.0.0.1:8001';
 const API = `${BACKEND_URL}/api`;
+
+// License status component
+const LicenseStatus = ({ licenseInfo, onPurchase }) => {
+  if (!licenseInfo) return null;
+
+  if (licenseInfo.isLicensed) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+        <div className="flex items-center">
+          <span className="text-green-600 mr-2">✅</span>
+          <span className="text-green-800 font-medium">Licensed Version</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (licenseInfo.isTrial) {
+    return (
+      <div className={`border rounded-lg p-3 mb-4 ${
+        licenseInfo.daysRemaining > 3 
+          ? 'bg-blue-50 border-blue-200' 
+          : 'bg-orange-50 border-orange-200'
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <span className={`mr-2 ${
+              licenseInfo.daysRemaining > 3 ? 'text-blue-600' : 'text-orange-600'
+            }`}>
+              ⏰
+            </span>
+            <span className={`font-medium ${
+              licenseInfo.daysRemaining > 3 ? 'text-blue-800' : 'text-orange-800'
+            }`}>
+              Trial: {licenseInfo.daysRemaining} days remaining
+            </span>
+          </div>
+          {licenseInfo.daysRemaining <= 7 && (
+            <button
+              onClick={onPurchase}
+              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+            >
+              Purchase License
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <span className="text-red-600 mr-2">❌</span>
+          <span className="text-red-800 font-medium">License Required</span>
+        </div>
+        <button
+          onClick={onPurchase}
+          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+        >
+          Purchase License
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // Components
 const Header = () => (
