@@ -39,5 +39,50 @@
     "globals": "15.15.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17"
+  },
+  "build": {
+    "appId": "com.statuschecker.app",
+    "productName": "Status Checker",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "frontend-build/**/*",
+      "backend/**/*",
+      "!backend/__pycache__",
+      "!backend/*.pyc",
+      "!backend/*.log"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend"
+      }
+    ],
+    "win": {
+      "target": {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }
