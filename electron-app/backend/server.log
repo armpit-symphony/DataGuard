@@ -1,0 +1,13 @@
+INFO:     Started server process [818]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:43880 - "GET /api/ HTTP/1.1" 200 OK
+/app/electron-app/backend/server.py:75: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.11/migration/
+  status_obj = StatusCheck(**input.dict())
+INFO:     127.0.0.1:56500 - "POST /api/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56502 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [818]
