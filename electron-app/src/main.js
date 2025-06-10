@@ -82,7 +82,7 @@ class StatusCheckerApp {
         env: {
           ...process.env,
           SQLITE_DB_PATH: path.join(this.getDataDir(), 'app.db'),
-          PORT: '8001'
+          PORT: '8002'
         }
       });
 
