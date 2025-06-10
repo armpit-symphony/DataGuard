@@ -3,8 +3,8 @@ import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import axios from "axios";
 
-// For desktop app, backend runs on localhost:8001
-const BACKEND_URL = "http://localhost:8001";
+// For desktop app, backend runs on localhost:8002
+const BACKEND_URL = "http://localhost:8002";
 const API = `${BACKEND_URL}/api`;
 
 const Home = () => {
