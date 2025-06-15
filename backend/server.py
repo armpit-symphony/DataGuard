@@ -183,17 +183,29 @@ async def create_bulk_removal_requests(user_id: str, background_tasks: Backgroun
 @api_router.get("/removal/status/{user_id}")
 async def get_removal_status(user_id: str):
     """Get removal status for all brokers for a user"""
-    requests = await db.removal_requests.find({"user_id": user_id}).to_list(100)
+    cursor = db.removal_requests.find({"user_id": user_id})
+    requests = await cursor.to_list(length=100)
+    
+    # Convert MongoDB documents to proper format
+    formatted_requests = []
+    for request in requests:
+        # Remove MongoDB _id field and convert datetime objects
+        request.pop('_id', None)
+        if 'created_at' in request and hasattr(request['created_at'], 'isoformat'):
+            request['created_at'] = request['created_at'].isoformat()
+        if 'completed_at' in request and request['completed_at'] and hasattr(request['completed_at'], 'isoformat'):
+            request['completed_at'] = request['completed_at'].isoformat()
+        formatted_requests.append(request)
     
     stats = {
-        "total": len(requests),
-        "pending": sum(1 for r in requests if r["status"] == "pending"),
-        "in_progress": sum(1 for r in requests if r["status"] == "in_progress"), 
-        "completed": sum(1 for r in requests if r["status"] == "completed"),
-        "failed": sum(1 for r in requests if r["status"] == "failed")
+        "total": len(formatted_requests),
+        "pending": sum(1 for r in formatted_requests if r["status"] == "pending"),
+        "in_progress": sum(1 for r in formatted_requests if r["status"] == "in_progress"), 
+        "completed": sum(1 for r in formatted_requests if r["status"] == "completed"),
+        "failed": sum(1 for r in formatted_requests if r["status"] == "failed")
     }
     
-    return {"requests": requests, "stats": stats}
+    return {"requests": formatted_requests, "stats": stats}
 
 @api_router.get("/removal/manual/{broker_name}")
 async def get_manual_instructions(broker_name: str):
