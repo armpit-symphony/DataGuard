@@ -7,12 +7,12 @@
   "dependencies": {
     "axios": "^1.8.4",
     "cra-template": "1.2.0",
+    "cross-env": "^7.0.3",
+    "electron-is-dev": "^3.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.1",
-    "react-scripts": "5.0.1",
-    "electron-is-dev": "^3.0.1",
-    "cross-env": "^7.0.3"
+    "react-scripts": "5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -42,6 +42,9 @@
   "devDependencies": {
     "@eslint/js": "9.23.0",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^8.0.0",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.0.0",
     "eslint": "9.23.0",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
@@ -49,10 +52,7 @@
     "globals": "15.15.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "electron": "^32.2.6",
-    "electron-builder": "^25.2.4",
-    "concurrently": "^9.1.0",
-    "wait-on": "^8.0.1"
+    "wait-on": "^7.0.0"
   },
   "build": {
     "appId": "com.dataguardpro.app",
