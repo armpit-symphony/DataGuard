@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import axios from "axios";
-import Dashboard from "./components/Dashboard";
-import StatusCheck from "./components/StatusCheck";
 import Header from "./components/Header";
+import Dashboard from "./components/Dashboard";
+import Registration from "./components/Registration";
+import RemovalStatus from "./components/RemovalStatus";
+import ManualInstructions from "./components/ManualInstructions";
+import EmailTemplates from "./components/EmailTemplates";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 const API = `${BACKEND_URL}/api`;
@@ -16,7 +19,9 @@ const isElectron = () => {
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
-  const [statusChecks, setStatusChecks] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [removalStats, setRemovalStats] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Test backend connection on startup
   useEffect(() => {
@@ -25,7 +30,7 @@ function App() {
         const response = await axios.get(`${API}/`, { timeout: 5000 });
         if (response.data.message) {
           setIsConnected(true);
-          console.log("Backend connected successfully");
+          console.log("DataGuard Pro backend connected successfully");
         }
       } catch (error) {
         console.error("Backend connection failed:", error);
@@ -40,44 +45,117 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Load status checks
-  const loadStatusChecks = async () => {
+  // Load user from localStorage on startup
+  useEffect(() => {
+    const savedUser = localStorage.getItem('dataguard_user');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  // Load removal stats when user is set
+  useEffect(() => {
+    if (currentUser && isConnected) {
+      loadRemovalStats();
+    }
+  }, [currentUser, isConnected]);
+
+  const loadRemovalStats = async () => {
+    if (!currentUser) return;
+    
     try {
-      const response = await axios.get(`${API}/status`);
-      setStatusChecks(response.data);
+      const response = await axios.get(`${API}/removal/status/${currentUser.id}`);
+      setRemovalStats(response.data);
     } catch (error) {
-      console.error("Failed to load status checks:", error);
+      console.error("Failed to load removal stats:", error);
     }
   };
 
-  useEffect(() => {
-    if (isConnected) {
-      loadStatusChecks();
+  const handleUserRegistration = (user) => {
+    setCurrentUser(user);
+    localStorage.setItem('dataguard_user', JSON.stringify(user));
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setRemovalStats(null);
+    localStorage.removeItem('dataguard_user');
+  };
+
+  const startRemovalProcess = async () => {
+    if (!currentUser) return;
+    
+    setLoading(true);
+    try {
+      await axios.post(`${API}/removal/bulk?user_id=${currentUser.id}`);
+      // Reload stats after starting process
+      setTimeout(() => {
+        loadRemovalStats();
+        setLoading(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to start removal process:", error);
+      setLoading(false);
     }
-  }, [isConnected]);
+  };
 
   return (
     <div className="App min-h-screen bg-gray-900 text-white">
       <BrowserRouter>
-        <Header isConnected={isConnected} isElectron={isElectron()} />
+        <Header 
+          isConnected={isConnected} 
+          isElectron={isElectron()} 
+          currentUser={currentUser}
+          onLogout={handleLogout}
+        />
         <main className="container mx-auto px-4 py-8">
           <Routes>
             <Route 
               path="/" 
               element={
-                <Dashboard 
-                  isConnected={isConnected} 
-                  statusChecks={statusChecks}
-                  onRefresh={loadStatusChecks}
-                />
+                !currentUser ? (
+                  <Registration 
+                    isConnected={isConnected}
+                    onUserRegistered={handleUserRegistration}
+                  />
+                ) : (
+                  <Dashboard 
+                    isConnected={isConnected}
+                    currentUser={currentUser}
+                    removalStats={removalStats}
+                    onStartRemoval={startRemovalProcess}
+                    onRefreshStats={loadRemovalStats}
+                    loading={loading}
+                  />
+                )
               } 
             />
             <Route 
               path="/status" 
               element={
-                <StatusCheck 
+                <RemovalStatus 
                   isConnected={isConnected}
-                  onStatusAdded={loadStatusChecks}
+                  currentUser={currentUser}
+                  removalStats={removalStats}
+                  onRefresh={loadRemovalStats}
+                />
+              } 
+            />
+            <Route 
+              path="/manual/:brokerName" 
+              element={
+                <ManualInstructions 
+                  isConnected={isConnected}
+                  currentUser={currentUser}
+                />
+              } 
+            />
+            <Route 
+              path="/email/:brokerName" 
+              element={
+                <EmailTemplates 
+                  isConnected={isConnected}
+                  currentUser={currentUser}
                 />
               } 
             />
