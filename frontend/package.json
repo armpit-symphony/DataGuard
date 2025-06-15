@@ -63,8 +63,12 @@
     "files": [
       "build/**/*",
       "electron/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "package.json"
     ],
+    "extraMetadata": {
+      "main": "electron/main-fixed.js"
+    },
     "mac": {
       "category": "public.app-category.productivity"
     },
