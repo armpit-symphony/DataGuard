@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const isDev = require('electron-is-dev');
 const { spawn } = require('child_process');
@@ -14,22 +14,29 @@ let backendProcess;
 function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 1400,
+    height: 900,
+    minWidth: 800,
+    minHeight: 600,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
       preload: path.join(__dirname, 'preload.js')
     },
-    icon: path.join(__dirname, 'assets/icon.png'), // You can add an icon later
     titleBarStyle: 'default',
-    show: false // Don't show until ready-to-show
+    show: false, // Don't show until ready-to-show
+    backgroundColor: '#111827' // Dark theme background
   });
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    
+    // Focus the window
+    if (isDev) {
+      mainWindow.webContents.openDevTools();
+    }
   });
 
   // Load the app
@@ -39,29 +46,30 @@ function createWindow() {
   
   mainWindow.loadURL(startUrl);
 
-  // Open DevTools in development
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  }
-
   // Handle window closed
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  // Handle external links
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
   });
 }
 
 function startBackendServer() {
   if (isDev) {
-    // In development, the backend is already running via supervisor
+    // In development, assume backend is running via supervisor
     console.log('Development mode: Backend should be running on supervisor');
     return;
   }
 
-  // In production, start the backend server as a child process
+  // In production, start the desktop backend server
   const backendPath = path.join(__dirname, '../../backend');
   const pythonExecutable = process.platform === 'win32' ? 'python.exe' : 'python3';
   
-  backendProcess = spawn(pythonExecutable, ['-m', 'uvicorn', 'server:app', '--host', '0.0.0.0', '--port', '8001'], {
+  backendProcess = spawn(pythonExecutable, ['server_desktop.py'], {
     cwd: backendPath,
     stdio: ['pipe', 'pipe', 'pipe']
   });
@@ -77,6 +85,10 @@ function startBackendServer() {
   backendProcess.on('close', (code) => {
     console.log(`Backend process exited with code ${code}`);
   });
+
+  backendProcess.on('error', (error) => {
+    console.error('Failed to start backend process:', error);
+  });
 }
 
 function stopBackendServer() {
@@ -85,6 +97,37 @@ function stopBackendServer() {
     backendProcess = null;
   }
 }
+
+// IPC handlers for the preload script
+ipcMain.handle('get-version', () => {
+  return app.getVersion();
+});
+
+ipcMain.handle('minimize', () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.handle('maximize', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.handle('close', () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+ipcMain.handle('open-external', (event, url) => {
+  shell.openExternal(url);
+});
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(() => {
