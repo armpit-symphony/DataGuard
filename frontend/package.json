@@ -2,7 +2,7 @@
   "name": "dataguardpro",
   "version": "1.0.0",
   "description": "DataGuard Pro - Secure Desktop Application for Privacy-Focused Data Management",
-  "main": "electron/main.js",
+  "main": "electron/main-simple.js",
   "homepage": "./",
   "dependencies": {
     "axios": "^1.8.4",
