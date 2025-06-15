@@ -173,7 +173,12 @@ async def create_bulk_removal_requests(user_id: str, background_tasks: Backgroun
     background_tasks.add_task(process_automated_removals, user_id)
     
     logger.info(f"Created {len(removal_requests)} removal requests for user {user_id}")
-    return {"message": f"Created {len(removal_requests)} removal requests", "requests": removal_requests}
+    return {
+        "message": f"Created {len(removal_requests)} removal requests", 
+        "total_requests": len(removal_requests),
+        "automated_requests": len([r for r in removal_requests if r["removal_type"] == "automated"]),
+        "manual_requests": len([r for r in removal_requests if r["removal_type"] == "manual"])
+    }
 
 @api_router.get("/removal/status/{user_id}")
 async def get_removal_status(user_id: str):
