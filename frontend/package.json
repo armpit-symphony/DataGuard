@@ -2,7 +2,7 @@
   "name": "dataguardpro",
   "version": "1.0.0",
   "description": "DataGuard Pro - Secure Desktop Application for Privacy-Focused Data Management",
-  "main": "electron/main-fixed.js",
+  "main": "electron/main-local.js",
   "author": "DataGuard Pro Team",
   "license": "MIT",
   "homepage": "./",
@@ -23,11 +23,12 @@
     "eject": "react-scripts eject",
     "electron": "cross-env NODE_ENV=development electron . --no-sandbox",
     "electron-dev": "concurrently \"yarn start\" \"wait-on http://localhost:3000 && electron . --no-sandbox\"",
-    "electron-build": "yarn build && electron . --no-sandbox",
+    "electron-local": "yarn build && cross-env NODE_ENV=production electron . --no-sandbox",
     "dist": "yarn build && electron-builder",
     "dist-mac": "yarn build && electron-builder --mac",
     "dist-win": "yarn build && electron-builder --win",
-    "dist-linux": "yarn build && electron-builder --linux"
+    "dist-linux": "yarn build && electron-builder --linux",
+    "postinstall": "cd ../backend && npm install"
   },
   "browserslist": {
     "production": [
