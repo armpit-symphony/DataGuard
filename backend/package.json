@@ -1,0 +1,20 @@
+{
+  "name": "dataguard-backend",
+  "version": "1.0.0", 
+  "description": "DataGuard Pro Local Backend",
+  "main": "server_nodejs.js",
+  "scripts": {
+    "start": "node server_nodejs.js",
+    "dev": "nodemon server_nodejs.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "sqlite3": "^5.1.6",
+    "playwright": "^1.40.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
