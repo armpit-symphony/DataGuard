@@ -1,0 +1,20 @@
+appId: com.dataguardpro.app
+productName: DataGuard Pro
+copyright: Copyright © 2025 Your Company
+win:
+  target:
+    - nsis
+    - zip
+  icon: build/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: DataGuard Pro
+  license: LICENSE.txt
+  artifactName: DataGuardPro-Setup-${version}.${ext}
+files:
+  - build/**
+  - electron/**
+  - backend/**
